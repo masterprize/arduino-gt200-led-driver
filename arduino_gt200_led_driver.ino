@@ -25,6 +25,10 @@ const long SHORT_PRESS_TIME = 1200; // 500 milliseconds
 long pressedTime = 0;
 long releasedTime = 0;
 
+bool flashing = false;
+const long FLASHING_INTERVAL = 600;
+long flashingTime = 0;
+
 void setup() {
    pinMode(ledPin, OUTPUT); // sets the pin as output
    max_index = sizeof(vals) / sizeof(int);
@@ -37,12 +41,13 @@ void setup() {
 }
 
 void loop() {
-  
+
+  long now = millis();
   int batState = analogRead(batPin);
   if (batState < LOW_BAT) {
-    long diff = millis() - lowBatTime;
+    long diff = now - lowBatTime;
     if (lowBatTime == 0) {
-      lowBatTime = millis();
+      lowBatTime = now;
       analogWrite(edge_leds, 150);
     } else if (diff > LOW_BAT_INTERVAL && diff < LOW_BAT_INTERVAL * 2) {
       analogWrite(edge_leds, 0);
@@ -56,27 +61,39 @@ void loop() {
   // read the state of the switch/button:
   currentState = digitalRead(btn_pin);
   if (currentState != lastState) {
-    if(lastState == HIGH && currentState == LOW) 
-      pressedTime = millis();
-      
+
     if(lastState == LOW && currentState == HIGH)
-      releasedTime = millis();
-  
+      pressedTime = now;
+
+    if(lastState == HIGH && currentState == LOW)
+      releasedTime = now;
+
     long pressDuration = releasedTime - pressedTime;
     if( pressDuration > 0 && pressDuration < SHORT_PRESS_TIME ) {
        ++current_index;
       if (current_index >= max_index) {
         current_index = 0;
       }
-  
-    } else if (pressDuration >= SHORT_PRESS_TIME) {
-      //or switch mode to flashing?
+      flashing = false;
+    }
+  } else if (!flashing && currentState == HIGH && now - pressedTime > SHORT_PRESS_TIME) {
+    //long pressing
+    flashing = true;
+    flashingTime = now;
+    if (vals[current_index] == 0) {
       current_index = 0;
-
     }
   }
   
   int nv = vals[current_index];
+  if (flashing) {
+    long fDiff = now - flashingTime;
+    if (fDiff > FLASHING_INTERVAL && fDiff < 2 * FLASHING_INTERVAL) {
+      nv = 0;
+    } else if (fDiff >= 2 * FLASHING_INTERVAL) {
+      flashingTime = now;
+    }
+  }
   if (nv != 0) {
     nv += (BAT_MAX_STATE - batState) / 4;
   }
