@@ -21,7 +21,7 @@ const long LOW_BAT_INTERVAL = 600;
 int brightness = 0;
 
 
-const long SHORT_PRESS_TIME = 4000; // 500 milliseconds
+const long SHORT_PRESS_TIME = 1200; // 500 milliseconds
 long pressedTime = 0;
 long releasedTime = 0;
 
