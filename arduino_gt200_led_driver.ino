@@ -28,7 +28,6 @@ long releasedTime = 0;
 void setup() {
    pinMode(ledPin, OUTPUT); // sets the pin as output
    max_index = sizeof(vals) / sizeof(int);
-   Serial.begin(9600);
 
    pinMode(btn_pin, INPUT_PULLUP);
    pinMode(edge_leds, OUTPUT);
@@ -83,7 +82,6 @@ void loop() {
   }
   if (abs(brightness - nv) > 8) {
     brightness = nv;
-    Serial.println(nv);
     analogWrite(ledPin, brightness);
   }
 
